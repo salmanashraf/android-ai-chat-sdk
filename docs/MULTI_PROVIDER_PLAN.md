@@ -1,17 +1,23 @@
 # AI Chat SDK – Multi-Provider Expansion Plan
 
+This is a roadmap document. It describes planned architecture and future capabilities, not the full set of features currently shipped by `ai-chat-lib`.
+
+## Current Shipped Scope
+- Single Android library module: `ai-chat-lib`.
+- Compose chat UI and headless response API.
+- Room-backed local message persistence.
+- Provider engines for OpenAI, Gemini, Anthropic, and Grok.
+- Sample app for manual provider configuration and testing.
+
 ## 1. Vision & Outcomes
 - Deliver a Jetpack Compose/Kotlin-first SDK where app teams can switch between GPT (OpenAI), Claude (Anthropic), Gemini (Google), and Grok (xAI) without code rewrites.
 - Keep the onboarding friction low: consumers add the library, initialize once, inject their own API keys, and start rendering the chat UI.
-- Align the framework with Tech Nation expectations: production-ready security posture, modular architecture, documentation, and roadmap governance.
+- Move toward stronger security posture, modular architecture, documentation, and roadmap governance.
 
 ## 2. Target Architecture
-- **modules/core** – conversation engine, repository, encryption boundary, configuration loader, tool router.
-- **modules/providers** – `openai`, `anthropic`, `gemini`, `xai` packages implementing a common `LLMEngine`.
-- **modules/ui** – Compose components + theming, streaming UI, typing indicators.
-- **modules/tools** – plugin contracts and registry.
-- **modules/embeddings** – optional TF Lite / ONNX vector store.
-- **samples/compose-demo** – showcases provider switcher, key injection, plugin demos.
+- Keep the current `ai-chat-lib` artifact as the public integration point.
+- Consider splitting internals into dedicated core, UI, provider, tools, embeddings, and crypto modules only when the added separation reduces consumer friction.
+- Keep `sampleapp` as the runnable demo for provider switching and credential entry.
 
 ## 3. Provider Abstraction
 ```kotlin
@@ -44,7 +50,7 @@ interface ProviderRegistry {
    )
    ```
 3. Render `ChatScreen()` in Compose; switch providers by updating `ChatSessionConfig`.
-4. Optionally register plugins/tools and embeddings engines.
+4. Future versions may add optional tools and embeddings engines.
 
 ## 5. Configuration & Key Management
 - Support `ChatSdkConfig` sourced from:
@@ -62,22 +68,22 @@ interface ProviderRegistry {
 | 4 | Grok (xAI) | Wire REST endpoints, align JSON schema, add brand-specific metadata. |
 | 5 | Fallback | Add transparent provider failover + health checks. |
 
-## 7. Tooling & Plugin System
+## 7. Tooling & Plugin System Roadmap
 - Define `ChatTool` interface (`suspend fun invoke(context: ToolContext): ToolResult`).
 - Provide registries for pre-processor, post-processor, and contextual tools.
 - Document sample tools (web search, calendar) and show registration inside the sample app.
 
-## 8. Offline Embeddings
+## 8. Offline Embeddings Roadmap
 - `EmbeddingEngine` contract with `TFLiteEmbeddingEngine` and `OnnxEmbeddingEngine`.
 - Vector store backed by Room FTS or SQLite, enabling semantic recall and RAG examples.
 - Allow host apps to opt-in via `ChatSdkConfig.embeddings`.
 
-## 9. Security & Compliance
-- AES-256-GCM encryption for stored messages (Android Keystore master key).
+## 9. Security & Compliance Roadmap
+- Add AES-256-GCM encryption for stored messages using Android Keystore.
 - HTTP clients enforce TLS 1.2+, optional certificate pinning.
 - Secrets injection only through runtime config; provide lint rule that flags hardcoded keys.
 - Structured logging with redaction, configurable telemetry hooks for enterprises.
-- Provide threat model appendix in docs to satisfy Tech Nation diligence.
+- Provide a threat model appendix in docs.
 
 ## 10. Testing & Quality Strategy
 - Unit tests per provider using MockWebServer + golden fixtures.
@@ -91,7 +97,7 @@ interface ProviderRegistry {
 - Update root `README` with provider matrix, quickstart, configuration table, security summary.
 - `/docs/providers/*.md` – setup & limitations for GPT, Claude, Gemini, Grok.
 - `/docs/tools/authoring-guide.md`, `/docs/security.md`, `/docs/testing.md`.
-- `/docs/roadmap/v1.1-v1.5.md` – detail upcoming iterations aligning with Tech Nation reporting.
+- `/docs/roadmap/v1.1-v1.5.md` – detail upcoming iterations.
 
 ## 12. Implementation Phases & Milestones
 1. **Foundation (Weeks 1–2)** – Module scaffolding, DI setup, provider registry, OpenAI adapter, Compose UI refresh.
@@ -105,4 +111,3 @@ interface ProviderRegistry {
 - 90% unit/integration test coverage for provider modules.
 - 0 plaintext secrets in repo (verified by CI secret scanner).
 - Sample app demonstrates all four providers with user-supplied keys.
-*** End Patch*** End Patch to=functions.apply_patch

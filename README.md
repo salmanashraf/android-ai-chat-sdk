@@ -45,7 +45,7 @@ Multi-provider AI chat SDK for Android written in Kotlin + Jetpack Compose. The 
 | Module | Description |
 | --- | --- |
 | `ai-chat-lib` | Distribution artifact that exposes UI + core functionality. |
-| `sampleapp` | Demo app for Tech Nation showcase/testing. |
+| `sampleapp` | Demo app for manual provider testing. |
 
 ## Provider Configuration
 - OpenAI / Claude / Grok: API key only.
@@ -54,6 +54,6 @@ Multi-provider AI chat SDK for Android written in Kotlin + Jetpack Compose. The 
 
 
 ## Contributing
-1. Read `docs/UPGRADE_PLAN.md` + `docs/MULTI_PROVIDER_PLAN.md`.
+1. Read `docs/MULTI_PROVIDER_PLAN.md`.
 2. Run lint/tests before opening a PR.
 3. Provide screenshots for UI changes and include provider test notes.

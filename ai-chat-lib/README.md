@@ -1,131 +1,77 @@
-# 🤖 AI Chat SDK for Android (OpenAI & Gemini Support)
+# AI Chat SDK for Android
 
-This is a lightweight and production-ready Android SDK that lets you integrate conversational AI (Gemini or OpenAI) into any Android app using modern development practices.
+This Android library adds a Compose chat UI, Room-backed message history, and a headless response API for apps that want to integrate OpenAI, Gemini, Anthropic, or Grok through a shared SDK surface.
 
----
+## Features
 
-## 🚀 Features
+- Jetpack Compose UI for chat
+- OpenAI, Gemini, Anthropic, and Grok provider engines
+- Local message persistence using Room
+- Real-time chat updates using Kotlin Flow
+- Persona prompt support
+- Headless API for response-only usage
+- Sample app included
 
-- ✨ Jetpack Compose UI for chat
-- 🤖 OpenAI GPT-3.5 / Gemini integration (pluggable)
-- 💾 Local message persistence using Room
-- 🔁 Real-time chat updates using Kotlin Flow
-- 🧱 MVVM + Clean Architecture
-- 📱 Sample app included
+## Installation
 
----
+```gradle
+implementation("io.github.salmanashraf:aichatlib:1.0.2")
+```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-md-android-clean/
-├── aichatlib/                # Reusable SDK module
-│   ├── data/                 # Room DB setup
-│   ├── model/                # Message & API Models
-│   ├── repository/           # Handles AI API and local persistence
-│   ├── ui/                   # Chat UI Composables
-│   └── viewmodel/            # ChatViewModel
+android-ai-chat-sdk/
+├── ai-chat-lib/              # Reusable Android SDK module
 ├── sampleapp/                # Demo app using the SDK
-│   └── MainActivity.kt
+└── docs/                     # Integration and roadmap docs
 ```
 
----
+## Configure Providers
 
-## 🔧 Setup
-
-### 1. Add to `libs.versions.toml`:
-```toml
-okhttp = "com.squareup.okhttp3:okhttp:4.12.0"
-json = "org.json:json:20231013"
-```
-
-### 2. Add Internet Permission in `AndroidManifest.xml`:
-```xml
-<uses-permission android:name="android.permission.INTERNET"/>
-```
-
-### 3. Application Class (init Room):
 ```kotlin
-class AIChatApp : Application() {
-    override fun onCreate() {
-        super.onCreate()
-        AppDatabase.init(this)
-    }
-}
+ChatSdk.initializeWithDefaults(
+    context = applicationContext,
+    config = ChatSdkConfig(
+        defaultProvider = ProviderId.OPEN_AI,
+        credentials = mapOf(
+            ProviderId.OPEN_AI to ProviderCredential.ApiKey("sk-...")
+        )
+    )
+)
 ```
 
-Update your `AndroidManifest.xml` of sample app:
-```xml
-<application android:name=".AIChatApp" ... />
-```
+## UI Usage
 
----
-
-## 🤖 Using OpenAI (GPT-3.5)
-
-In `ChatRepository.kt`:
-```kotlin
-suspend fun getAIResponse(message: String): String = withContext(Dispatchers.IO) {
-    val json = JSONObject().apply {
-        put("model", "gpt-3.5-turbo")
-        put("messages", JSONArray().apply {
-            put(JSONObject().apply {
-                put("role", "user")
-                put("content", message)
-            })
-        })
-    }
-
-    val requestBody = json.toString()
-        .toRequestBody("application/json".toMediaType())
-
-    val request = Request.Builder()
-        .url("https://api.openai.com/v1/chat/completions")
-        .header("Authorization", "Bearer YOUR_API_KEY")
-        .post(requestBody)
-        .build()
-
-    val response = client.newCall(request).execute()
-    val body = response.body?.string()
-
-    return@withContext JSONObject(body ?: "")
-        .getJSONArray("choices")
-        .getJSONObject(0)
-        .getJSONObject("message")
-        .getString("content").trim()
-}
-```
-
-> 🔐 Replace `YOUR_API_KEY` with your [OpenAI API key](https://platform.openai.com/account/api-keys)
-
----
-
-## 💬 Start Chat Screen
-
-In your `MainActivity.kt`:
 ```kotlin
 setContent {
     MaterialTheme {
-        ChatScreen()
+        ChatScreen(
+            personaPrompt = "You are a friendly fitness coach.",
+            usePersona = true
+        )
     }
 }
 ```
 
----
+To use a generic chat, pass `usePersona = false` or omit the persona prompt.
 
-## ✅ Tech Highlights
+## Headless Usage
 
-| Layer     | Technology               |
-|-----------|--------------------------|
-| UI        | Jetpack Compose          |
-| ViewModel | Kotlin Coroutines + Flow |
-| DB        | Room                     |
-| Network   | OpenAI via OkHttp        |
+```kotlin
+val response = ChatSdk.client().respond(
+    prompt = "Give me a 3-day workout plan.",
+    personaPrompt = "You are a concise personal trainer.",
+    usePersona = true
+)
+```
 
+To keep the call stateless, leave `useHistory` and `persist` unset (defaults to false).
 
----
+## Roadmap
 
-## 📝 License
+Tools, embeddings, RAG examples, encrypted local storage, streaming responses, and advanced provider capabilities are roadmap items. They should not be treated as shipped SDK features yet.
 
-MIT – Free to use, modify, and extend.
+## License
 
+MIT - Free to use, modify, and extend.
