@@ -9,7 +9,7 @@ plugins {
 	alias(libs.plugins.compose.compiler) apply false
 }
 
-val publishedGroup = "com.softrivo.aichat"
+val publishedGroup = "io.github.salmanashraf"
 val publishedVersion = providers
 	.gradleProperty("LIB_VERSION")
 	.orElse("0.0.1-SNAPSHOT")
