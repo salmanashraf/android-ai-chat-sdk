@@ -2,24 +2,46 @@
 Multi-provider AI chat framework for Android (Jetpack Compose + Kotlin).  
 Supports OpenAI (GPT), Claude, Gemini, Grok, and custom LLMs.
 
-## ✨ Features
-- Modular architecture (core, providers, UI, tools)
+## Features
 - Plug-and-play Compose Chat UI
 - Multi-provider switching (GPT, Claude, Gemini, Grok)
-- Plugin system for tools & agents
-- Local encrypted message storage (AES-256)
-- Offline embeddings (ONNX / TFLite)
-- RAG document chat
+- Headless API for response-only usage
+- Persona prompt support (system message)
+- Room-backed local message persistence
 - Demo app included
 
-## 📚 Documentation
+## Installation
+
+```gradle
+implementation("io.github.salmanashraf:aichatlib:1.0.2")
+```
+
+## Documentation
 Full docs available in `/docs`.
 
-Start here → **[docs/intro/project-philosophy.md](docs/intro/project-philosophy.md)**
+Start here: [getting-started.md](getting-started.md)
 
-## ⚡ Quick Start
+## Quick Start
 ```kotlin
-val chat = AiChatSDK {
-    provider(OpenAIProvider(apiKey = "sk-..."))
-}
-AiChatScreen(sdk = chat, sessionId = "default")
+ChatSdk.initializeWithDefaults(
+    context = applicationContext,
+    config = ChatSdkConfig(
+        defaultProvider = ProviderId.OPEN_AI,
+        credentials = mapOf(
+            ProviderId.OPEN_AI to ProviderCredential.ApiKey("sk-...")
+        )
+    )
+)
+
+ChatScreen(personaPrompt = "You are a travel guide.", usePersona = true)
+```
+
+Headless response-only:
+
+```kotlin
+val reply = ChatSdk.client().respond(
+    prompt = "Plan a 2-day Tokyo trip.",
+    personaPrompt = "You are a concise travel guide.",
+    usePersona = true
+)
+```
