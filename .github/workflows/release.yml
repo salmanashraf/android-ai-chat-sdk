@@ -70,11 +70,6 @@ jobs:
             exit 1
           fi
 
-          if [[ -z "${GPG_PASSPHRASE}" ]]; then
-            echo "GPG_PASSPHRASE secret is required for signed publication." >&2
-            exit 1
-          fi
-
           mkdir -p "${HOME}/.gnupg"
           chmod 700 "${HOME}/.gnupg"
           echo "pinentry-mode loopback" >> "${HOME}/.gnupg/gpg.conf"
