@@ -82,7 +82,7 @@ jobs:
 
           KEY_FILE="${RUNNER_TEMP}/signing-key.asc"
           if [[ -n "${GPG_PRIVATE_KEY_BASE64}" ]]; then
-            printf '%s' "${GPG_PRIVATE_KEY_BASE64}" | base64 --decode > "${KEY_FILE}"
+            printf '%s' "${GPG_PRIVATE_KEY_BASE64}" | tr -d '[:space:]' | base64 --decode > "${KEY_FILE}"
           else
             printf '%s' "${GPG_PRIVATE_KEY}" > "${KEY_FILE}"
           fi
