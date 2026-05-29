@@ -21,6 +21,8 @@ Full docs available in `/docs`.
 
 Start here: [getting-started.md](getting-started.md)
 
+Architecture: [architecture.md](architecture.md)
+
 Security guidance: [security.md](security.md)
 
 Publishing workflow: [publishing.md](publishing.md)

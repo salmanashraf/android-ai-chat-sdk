@@ -244,6 +244,7 @@ Run it from Android Studio with the `sampleapp` configuration.
 
 ## Documentation
 
+- [High-level architecture](docs/architecture.md)
 - [Getting started](docs/getting-started.md)
 - [Security guide](docs/security.md)
 - [Development test guide](docs/DEV_TEST_GUIDE.md)
