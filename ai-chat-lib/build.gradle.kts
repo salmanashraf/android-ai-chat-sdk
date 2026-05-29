@@ -1,5 +1,6 @@
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.jvm.tasks.Jar
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 
 plugins {
 	alias(libs.plugins.android.library)
@@ -170,11 +171,18 @@ afterEvaluate {
 				)
 				credentials {
 					username = project.findProperty("ossrhUsername") as String?
-						?: throw GradleException("Missing ossrhUsername in gradle.properties")
 					password = project.findProperty("ossrhPassword") as String?
-						?: throw GradleException("Missing ossrhPassword in gradle.properties")
 				}
 			}
+		}
+	}
+
+	tasks.withType<PublishToMavenRepository>().configureEach {
+		onlyIf {
+			val hasCredentials = project.findProperty("ossrhUsername") != null &&
+				project.findProperty("ossrhPassword") != null
+
+			repository.name != "OSSRH" || hasCredentials
 		}
 	}
 
