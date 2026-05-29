@@ -6,20 +6,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,6 +59,7 @@ fun SampleRoot() {
 	var headlessLoading by remember { mutableStateOf(false) }
 	var uiPersona by rememberSaveable { mutableStateOf("") }
 	var uiUsePersona by rememberSaveable { mutableStateOf(false) }
+	var showAdvanced by rememberSaveable { mutableStateOf(false) }
 	val context = LocalContext.current
 
 	Scaffold(
@@ -67,76 +70,93 @@ fun SampleRoot() {
 				.padding(padding)
 				.fillMaxSize()
 		) {
-			Column(
+			ProviderConfigCard(
+				selectedProvider = selectedProvider,
+				onProviderChange = { selectedProvider = it },
+				openAiKey = openAiKey,
+				onOpenAiChange = { openAiKey = it },
+				geminiKey = geminiKey,
+				onGeminiChange = { geminiKey = it },
+				anthropicKey = anthropicKey,
+				onAnthropicChange = { anthropicKey = it },
+				grokKey = grokKey,
+				onGrokChange = { grokKey = it },
+				onApply = {
+					val credentials = buildMap {
+						if (openAiKey.isNotBlank()) put(ProviderId.OPEN_AI, ProviderCredential.ApiKey(openAiKey.trim()))
+						loadGeminiCredential(context, geminiKey)?.let { put(ProviderId.GEMINI, it) }
+						if (anthropicKey.isNotBlank()) put(ProviderId.ANTHROPIC, ProviderCredential.ApiKey(anthropicKey.trim()))
+						if (grokKey.isNotBlank()) put(ProviderId.XAI, ProviderCredential.ApiKey(grokKey.trim()))
+					}
+					if (credentials[selectedProvider] == null) {
+						scope.launch {
+							snackbarHostState.showSnackbar("Configure a credential for $selectedProvider before applying")
+						}
+						return@ProviderConfigCard
+					}
+					ChatSdk.applyConfig(
+						ChatSdkConfig(
+							defaultProvider = selectedProvider,
+							credentials = credentials
+						)
+					)
+					scope.launch {
+						snackbarHostState.showSnackbar("Applied config for $selectedProvider")
+					}
+				}
+			)
+
+			Row(
 				modifier = Modifier
 					.fillMaxWidth()
-					.verticalScroll(rememberScrollState())
+					.padding(horizontal = 12.dp),
+				verticalAlignment = Alignment.CenterVertically
 			) {
-				ProviderConfigCard(
-					selectedProvider = selectedProvider,
-					onProviderChange = { selectedProvider = it },
-					openAiKey = openAiKey,
-					onOpenAiChange = { openAiKey = it },
-					geminiKey = geminiKey,
-					onGeminiChange = { geminiKey = it },
-					anthropicKey = anthropicKey,
-					onAnthropicChange = { anthropicKey = it },
-					grokKey = grokKey,
-					onGrokChange = { grokKey = it },
-					onApply = {
-						val credentials = buildMap {
-							if (openAiKey.isNotBlank()) put(ProviderId.OPEN_AI, ProviderCredential.ApiKey(openAiKey.trim()))
-							loadGeminiCredential(context, geminiKey)?.let { put(ProviderId.GEMINI, it) }
-							if (anthropicKey.isNotBlank()) put(ProviderId.ANTHROPIC, ProviderCredential.ApiKey(anthropicKey.trim()))
-							if (grokKey.isNotBlank()) put(ProviderId.XAI, ProviderCredential.ApiKey(grokKey.trim()))
-						}
-						if (credentials[selectedProvider] == null) {
-							scope.launch {
-								snackbarHostState.showSnackbar("Configure a credential for $selectedProvider before applying")
-							}
-							return@ProviderConfigCard
-						}
-						ChatSdk.applyConfig(
-							ChatSdkConfig(
-								defaultProvider = selectedProvider,
-								credentials = credentials
-							)
-						)
-						scope.launch {
-							snackbarHostState.showSnackbar("Applied config for $selectedProvider")
-						}
-					}
-				)
-				HeadlessDemoCard(
-					prompt = headlessPrompt,
-					onPromptChange = { headlessPrompt = it },
-					persona = headlessPersona,
-					onPersonaChange = { headlessPersona = it },
-					response = headlessResponse,
-					loading = headlessLoading,
-					onSend = {
-						if (headlessPrompt.isBlank()) return@HeadlessDemoCard
-						headlessLoading = true
-						scope.launch {
-							val reply = ChatSdk.client().respond(
-								prompt = headlessPrompt.trim(),
-								personaPrompt = headlessPersona.takeIf { it.isNotBlank() },
-								usePersona = headlessPersona.isNotBlank()
-							)
-							headlessResponse = reply
-							headlessLoading = false
-						}
-					}
-				)
-				UiPersonaCard(
-					persona = uiPersona,
-					onPersonaChange = { uiPersona = it },
-					usePersona = uiUsePersona,
-					onUsePersonaChange = { uiUsePersona = it }
-				)
+				Text(text = "Demo tools")
+				Spacer(modifier = Modifier.weight(1f))
+				TextButton(onClick = { showAdvanced = !showAdvanced }) {
+					Text(if (showAdvanced) "Hide" else "Show")
+				}
 			}
 
-			Divider(modifier = Modifier.padding(vertical = 8.dp))
+			if (showAdvanced) {
+				Column(
+					modifier = Modifier
+						.fillMaxWidth()
+						.heightIn(max = 320.dp)
+						.verticalScroll(rememberScrollState())
+				) {
+					HeadlessDemoCard(
+						prompt = headlessPrompt,
+						onPromptChange = { headlessPrompt = it },
+						persona = headlessPersona,
+						onPersonaChange = { headlessPersona = it },
+						response = headlessResponse,
+						loading = headlessLoading,
+						onSend = {
+							if (headlessPrompt.isBlank()) return@HeadlessDemoCard
+							headlessLoading = true
+							scope.launch {
+								val reply = ChatSdk.client().respond(
+									prompt = headlessPrompt.trim(),
+									personaPrompt = headlessPersona.takeIf { it.isNotBlank() },
+									usePersona = headlessPersona.isNotBlank()
+								)
+								headlessResponse = reply
+								headlessLoading = false
+							}
+						}
+					)
+					UiPersonaCard(
+						persona = uiPersona,
+						onPersonaChange = { uiPersona = it },
+						usePersona = uiUsePersona,
+						onUsePersonaChange = { uiUsePersona = it }
+					)
+				}
+			}
+
+			HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
 			Card(
 				modifier = Modifier
@@ -177,12 +197,12 @@ private fun ProviderConfigCard(
 
 	Card(
 		modifier = Modifier
-			.padding(12.dp)
+			.padding(horizontal = 12.dp, vertical = 8.dp)
 			.fillMaxWidth()
 	) {
-		Column(modifier = Modifier.padding(16.dp)) {
+		Column(modifier = Modifier.padding(12.dp)) {
 			Text(text = "Provider & Credentials")
-			Spacer(modifier = Modifier.height(8.dp))
+			Spacer(modifier = Modifier.height(6.dp))
 			Text(text = "Default Provider")
 			OutlinedButton(
 				onClick = { dropdownExpanded = true },
@@ -205,7 +225,7 @@ private fun ProviderConfigCard(
 				}
 			}
 
-			Spacer(modifier = Modifier.height(12.dp))
+			Spacer(modifier = Modifier.height(8.dp))
 			KeyFieldForProvider(
 				provider = selectedProvider,
 				openAiKey = openAiKey,
@@ -218,7 +238,7 @@ private fun ProviderConfigCard(
 				onGrokChange = onGrokChange
 			)
 
-			Spacer(modifier = Modifier.height(16.dp))
+			Spacer(modifier = Modifier.height(8.dp))
 			Button(
 				onClick = onApply,
 				modifier = Modifier.align(Alignment.End)
@@ -307,7 +327,7 @@ private fun HeadlessDemoCard(
 			}
 			if (response.isNotBlank()) {
 				Spacer(modifier = Modifier.height(12.dp))
-				Divider()
+				HorizontalDivider()
 				Spacer(modifier = Modifier.height(8.dp))
 				Text(text = "Response")
 				Spacer(modifier = Modifier.height(4.dp))
