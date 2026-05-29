@@ -11,6 +11,11 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import org.json.JSONObject
 
+const val DEFAULT_OPENAI_MODEL = "gpt-4.1"
+const val DEFAULT_GEMINI_MODEL = "models/gemini-3.5-flash"
+const val DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+const val DEFAULT_XAI_MODEL = "grok-4.3"
+
 /**
  * Convenience helpers to bootstrap ChatSdk with the default provider engines.
  */
@@ -41,7 +46,7 @@ fun ChatSdk.installDefaultEngines(
 		registerEngine(
 			OpenAiEngine(
 				apiKeyProvider = { openAiKey },
-				defaultModel = cfg.providerModels[ProviderId.OPEN_AI] ?: "gpt-3.5-turbo",
+				defaultModel = cfg.providerModels[ProviderId.OPEN_AI] ?: DEFAULT_OPENAI_MODEL,
 				httpClient = httpClient,
 				json = json
 			)
@@ -57,7 +62,7 @@ fun ChatSdk.installDefaultEngines(
 		registerEngine(
 			GeminiEngine(
 				apiKeyProvider = { it },
-				model = cfg.providerModels[ProviderId.GEMINI] ?: "models/gemini-pro",
+				model = cfg.providerModels[ProviderId.GEMINI] ?: DEFAULT_GEMINI_MODEL,
 				httpClient = httpClient,
 				json = json
 			)
@@ -68,7 +73,7 @@ fun ChatSdk.installDefaultEngines(
 		registerEngine(
 			AnthropicEngine(
 				apiKeyProvider = { anthropicKey },
-				model = cfg.providerModels[ProviderId.ANTHROPIC] ?: "claude-3-haiku-20240307",
+				model = cfg.providerModels[ProviderId.ANTHROPIC] ?: DEFAULT_ANTHROPIC_MODEL,
 				httpClient = httpClient,
 				json = json
 			)
@@ -79,7 +84,7 @@ fun ChatSdk.installDefaultEngines(
 		registerEngine(
 			GrokEngine(
 				apiKeyProvider = { grokKey },
-				model = cfg.providerModels[ProviderId.XAI] ?: "grok-beta",
+				model = cfg.providerModels[ProviderId.XAI] ?: DEFAULT_XAI_MODEL,
 				httpClient = httpClient,
 				json = json
 			)

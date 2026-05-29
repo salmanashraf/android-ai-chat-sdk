@@ -3,6 +3,7 @@ package com.sa.aichat.providers.openai
 import com.sa.aichatlib.model.OpenAIChatRequest
 import com.sa.aichatlib.model.OpenAIChatResponse
 import com.sa.aichatlib.model.OpenAIMessage
+import com.sa.aichatlib.DEFAULT_OPENAI_MODEL
 import com.sa.aichatlib.provider.ChatMessagePayload
 import com.sa.aichatlib.provider.ChatRequest
 import com.sa.aichatlib.provider.ChatResult
@@ -19,7 +20,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class OpenAiEngine(
     private val apiKeyProvider: () -> String?,
-    private val defaultModel: String = "gpt-3.5-turbo",
+    private val defaultModel: String = DEFAULT_OPENAI_MODEL,
     private val httpClient: OkHttpClient = OkHttpClient(),
     private val json: Json = Json { ignoreUnknownKeys = true }
 ) : LLMEngine {

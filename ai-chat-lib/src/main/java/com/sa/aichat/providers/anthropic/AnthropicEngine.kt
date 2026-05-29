@@ -1,5 +1,6 @@
 package com.sa.aichat.providers.anthropic
 
+import com.sa.aichatlib.DEFAULT_ANTHROPIC_MODEL
 import com.sa.aichatlib.provider.ChatMessagePayload
 import com.sa.aichatlib.provider.ChatRequest
 import com.sa.aichatlib.provider.ChatResult
@@ -16,7 +17,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class AnthropicEngine(
 	private val apiKeyProvider: () -> String?,
-	private val model: String = "claude-3-haiku-20240307",
+	private val model: String = DEFAULT_ANTHROPIC_MODEL,
 	private val httpClient: OkHttpClient = OkHttpClient(),
 	private val json: Json = Json { ignoreUnknownKeys = true },
 	private val endpointUrl: String = "https://api.anthropic.com/v1/messages"

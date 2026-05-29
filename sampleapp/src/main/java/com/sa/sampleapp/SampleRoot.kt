@@ -18,8 +18,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -40,6 +43,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.sa.aichatlib.DEFAULT_ANTHROPIC_MODEL
+import com.sa.aichatlib.DEFAULT_GEMINI_MODEL
+import com.sa.aichatlib.DEFAULT_OPENAI_MODEL
+import com.sa.aichatlib.DEFAULT_XAI_MODEL
 import com.sa.aichatlib.ChatSdk
 import com.sa.aichatlib.ChatSdkConfig
 import com.sa.aichatlib.applyConfig
@@ -55,6 +62,10 @@ fun SampleRoot() {
 
 	// Values persisted across rotations.
 	var selectedProvider by rememberSaveable { mutableStateOf(ProviderId.OPEN_AI) }
+	var openAiModel by rememberSaveable { mutableStateOf(DEFAULT_OPENAI_MODEL) }
+	var geminiModel by rememberSaveable { mutableStateOf(DEFAULT_GEMINI_MODEL) }
+	var anthropicModel by rememberSaveable { mutableStateOf(DEFAULT_ANTHROPIC_MODEL) }
+	var grokModel by rememberSaveable { mutableStateOf(DEFAULT_XAI_MODEL) }
 	var openAiKey by rememberSaveable { mutableStateOf("") }
 	var geminiKey by rememberSaveable { mutableStateOf("") }
 	var anthropicKey by rememberSaveable { mutableStateOf("") }
@@ -79,6 +90,14 @@ fun SampleRoot() {
 			ProviderConfigCard(
 				selectedProvider = selectedProvider,
 				onProviderChange = { selectedProvider = it },
+				openAiModel = openAiModel,
+				onOpenAiModelChange = { openAiModel = it },
+				geminiModel = geminiModel,
+				onGeminiModelChange = { geminiModel = it },
+				anthropicModel = anthropicModel,
+				onAnthropicModelChange = { anthropicModel = it },
+				grokModel = grokModel,
+				onGrokModelChange = { grokModel = it },
 				openAiKey = openAiKey,
 				onOpenAiChange = { openAiKey = it },
 				geminiKey = geminiKey,
@@ -103,7 +122,13 @@ fun SampleRoot() {
 					ChatSdk.applyConfig(
 						ChatSdkConfig(
 							defaultProvider = selectedProvider,
-							credentials = credentials
+							credentials = credentials,
+							providerModels = mapOf(
+								ProviderId.OPEN_AI to openAiModel,
+								ProviderId.GEMINI to geminiModel,
+								ProviderId.ANTHROPIC to anthropicModel,
+								ProviderId.XAI to grokModel
+							)
 						)
 					)
 					scope.launch {
@@ -183,6 +208,14 @@ fun SampleRoot() {
 private fun ProviderConfigCard(
 	selectedProvider: ProviderId,
 	onProviderChange: (ProviderId) -> Unit,
+	openAiModel: String,
+	onOpenAiModelChange: (String) -> Unit,
+	geminiModel: String,
+	onGeminiModelChange: (String) -> Unit,
+	anthropicModel: String,
+	onAnthropicModelChange: (String) -> Unit,
+	grokModel: String,
+	onGrokModelChange: (String) -> Unit,
 	openAiKey: String,
 	onOpenAiChange: (String) -> Unit,
 	geminiKey: String,
@@ -248,6 +281,19 @@ private fun ProviderConfigCard(
 				)
 			}
 
+			Spacer(modifier = Modifier.height(8.dp))
+			ModelSelector(
+				provider = selectedProvider,
+				openAiModel = openAiModel,
+				onOpenAiModelChange = onOpenAiModelChange,
+				geminiModel = geminiModel,
+				onGeminiModelChange = onGeminiModelChange,
+				anthropicModel = anthropicModel,
+				onAnthropicModelChange = onAnthropicModelChange,
+				grokModel = grokModel,
+				onGrokModelChange = onGrokModelChange
+			)
+
 			Spacer(modifier = Modifier.height(6.dp))
 			KeyFieldForProvider(
 				provider = selectedProvider,
@@ -271,6 +317,91 @@ private fun ProviderConfigCard(
 		}
 	}
 }
+
+private data class ModelOption(
+	val label: String,
+	val model: String
+)
+
+@Composable
+private fun ModelSelector(
+	provider: ProviderId,
+	openAiModel: String,
+	onOpenAiModelChange: (String) -> Unit,
+	geminiModel: String,
+	onGeminiModelChange: (String) -> Unit,
+	anthropicModel: String,
+	onAnthropicModelChange: (String) -> Unit,
+	grokModel: String,
+	onGrokModelChange: (String) -> Unit
+) {
+	val options = modelOptionsFor(provider)
+	val selectedModel = when (provider) {
+		ProviderId.OPEN_AI -> openAiModel
+		ProviderId.GEMINI -> geminiModel
+		ProviderId.ANTHROPIC -> anthropicModel
+		ProviderId.XAI -> grokModel
+	}
+	val onModelChange: (String) -> Unit = when (provider) {
+		ProviderId.OPEN_AI -> onOpenAiModelChange
+		ProviderId.GEMINI -> onGeminiModelChange
+		ProviderId.ANTHROPIC -> onAnthropicModelChange
+		ProviderId.XAI -> onGrokModelChange
+	}
+	var expanded by remember { mutableStateOf(false) }
+	val selectedLabel = options.firstOrNull { it.model == selectedModel }?.label ?: selectedModel
+
+	Text(text = "Model")
+	Spacer(modifier = Modifier.height(4.dp))
+	OutlinedButton(
+		onClick = { expanded = true },
+		modifier = Modifier.fillMaxWidth()
+	) {
+		Text(selectedLabel)
+	}
+	DropdownMenu(
+		expanded = expanded,
+		onDismissRequest = { expanded = false }
+	) {
+		options.forEach { option ->
+			DropdownMenuItem(
+				text = { Text("${option.label} (${option.model})") },
+				onClick = {
+					onModelChange(option.model)
+					expanded = false
+				}
+			)
+		}
+	}
+}
+
+private fun modelOptionsFor(provider: ProviderId): List<ModelOption> =
+	when (provider) {
+		ProviderId.OPEN_AI -> listOf(
+			ModelOption("GPT-4.1", DEFAULT_OPENAI_MODEL),
+			ModelOption("GPT-4.1 mini", "gpt-4.1-mini"),
+			ModelOption("GPT-5 mini", "gpt-5-mini"),
+			ModelOption("GPT-5.2", "gpt-5.2")
+		)
+		ProviderId.GEMINI -> listOf(
+			ModelOption("Gemini 3.5 Flash", DEFAULT_GEMINI_MODEL),
+			ModelOption("Gemini 2.5 Pro", "models/gemini-2.5-pro"),
+			ModelOption("Gemini 2.5 Flash", "models/gemini-2.5-flash"),
+			ModelOption("Gemini 2.5 Flash-Lite", "models/gemini-2.5-flash-lite")
+		)
+		ProviderId.ANTHROPIC -> listOf(
+			ModelOption("Claude Sonnet 4", DEFAULT_ANTHROPIC_MODEL),
+			ModelOption("Claude Opus 4.1", "claude-opus-4-1-20250805"),
+			ModelOption("Claude Opus 4", "claude-opus-4-20250514"),
+			ModelOption("Claude Haiku 3.5", "claude-3-5-haiku-20241022")
+		)
+		ProviderId.XAI -> listOf(
+			ModelOption("Grok 4.3", DEFAULT_XAI_MODEL),
+			ModelOption("Grok 4.3 latest", "grok-4.3-latest"),
+			ModelOption("Grok 4.20", "grok-4.20"),
+			ModelOption("Grok 4 fast", "grok-4-fast")
+		)
+	}
 
 private data class ProviderOption(
 	val id: ProviderId,

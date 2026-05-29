@@ -1,5 +1,6 @@
 package com.sa.aichat.providers.gemini
 
+import com.sa.aichatlib.DEFAULT_GEMINI_MODEL
 import com.sa.aichatlib.provider.ChatRequest
 import com.sa.aichatlib.provider.ChatResult
 import com.sa.aichatlib.provider.ChatRole
@@ -15,7 +16,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class GeminiEngine(
 	private val apiKeyProvider: () -> String?,
-	private val model: String = "models/gemini-pro",
+	private val model: String = DEFAULT_GEMINI_MODEL,
 	private val httpClient: OkHttpClient = OkHttpClient(),
 	private val json: Json = Json { ignoreUnknownKeys = true }
 ) : LLMEngine {

@@ -1,5 +1,6 @@
 package com.sa.aichat.providers.xai
 
+import com.sa.aichatlib.DEFAULT_XAI_MODEL
 import com.sa.aichatlib.provider.ChatMessagePayload
 import com.sa.aichatlib.provider.ChatRequest
 import com.sa.aichatlib.provider.ChatResult
@@ -15,7 +16,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class GrokEngine(
 	private val apiKeyProvider: () -> String?,
-	private val model: String = "grok-beta",
+	private val model: String = DEFAULT_XAI_MODEL,
 	private val httpClient: OkHttpClient = OkHttpClient(),
 	private val json: Json = Json { ignoreUnknownKeys = true }
 ) : LLMEngine {
