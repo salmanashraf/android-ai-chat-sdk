@@ -1,5 +1,10 @@
 package com.sa.sampleapp
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,13 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -32,7 +36,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sa.aichatlib.ChatSdk
 import com.sa.aichatlib.ChatSdkConfig
@@ -187,12 +193,11 @@ private fun ProviderConfigCard(
 	onGrokChange: (String) -> Unit,
 	onApply: () -> Unit
 ) {
-	var dropdownExpanded by remember { mutableStateOf(false) }
 	val options = listOf(
-		ProviderId.OPEN_AI to "OpenAI (GPT)",
-		ProviderId.GEMINI to "Gemini",
-		ProviderId.ANTHROPIC to "Claude",
-		ProviderId.XAI to "Grok"
+		ProviderOption(ProviderId.OPEN_AI, "OpenAI", "GPT", "OA"),
+		ProviderOption(ProviderId.GEMINI, "Gemini", "Google", "G"),
+		ProviderOption(ProviderId.ANTHROPIC, "Claude", "Anthropic", "C"),
+		ProviderOption(ProviderId.XAI, "Grok", "xAI", "X")
 	)
 
 	Card(
@@ -203,29 +208,47 @@ private fun ProviderConfigCard(
 		Column(modifier = Modifier.padding(12.dp)) {
 			Text(text = "Provider & Credentials")
 			Spacer(modifier = Modifier.height(6.dp))
-			Text(text = "Default Provider")
-			OutlinedButton(
-				onClick = { dropdownExpanded = true },
-				modifier = Modifier.fillMaxWidth()
-			) {
-				Text(options.first { it.first == selectedProvider }.second)
-			}
-			DropdownMenu(
-				expanded = dropdownExpanded,
-				onDismissRequest = { dropdownExpanded = false }
-			) {
-				options.forEach { (id, label) ->
-					DropdownMenuItem(
-						text = { Text(label) },
-						onClick = {
-							onProviderChange(id)
-							dropdownExpanded = false
+			Text(text = "Choose platform")
+			Spacer(modifier = Modifier.height(8.dp))
+			Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+				options.chunked(2).forEach { rowOptions ->
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.spacedBy(8.dp)
+					) {
+						rowOptions.forEach { option ->
+							ProviderOptionTile(
+								option = option,
+								selected = option.id == selectedProvider,
+								onClick = { onProviderChange(option.id) },
+								modifier = Modifier.weight(1f)
+							)
 						}
-					)
+						if (rowOptions.size == 1) {
+							Spacer(modifier = Modifier.weight(1f))
+						}
+					}
 				}
 			}
 
-			Spacer(modifier = Modifier.height(8.dp))
+			Spacer(modifier = Modifier.height(10.dp))
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Text(
+					text = "Active",
+					color = MaterialTheme.colorScheme.onSurfaceVariant
+				)
+				Spacer(modifier = Modifier.weight(1f))
+				Text(
+					text = options.first { it.id == selectedProvider }.title,
+					color = MaterialTheme.colorScheme.primary,
+					fontWeight = FontWeight.SemiBold
+				)
+			}
+
+			Spacer(modifier = Modifier.height(6.dp))
 			KeyFieldForProvider(
 				provider = selectedProvider,
 				openAiKey = openAiKey,
@@ -245,6 +268,67 @@ private fun ProviderConfigCard(
 			) {
 				Text("Apply")
 			}
+		}
+	}
+}
+
+private data class ProviderOption(
+	val id: ProviderId,
+	val title: String,
+	val subtitle: String,
+	val badge: String
+)
+
+@Composable
+private fun ProviderOptionTile(
+	option: ProviderOption,
+	selected: Boolean,
+	onClick: () -> Unit,
+	modifier: Modifier = Modifier
+) {
+	val shape = RoundedCornerShape(14.dp)
+	val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+	val backgroundColor = if (selected) {
+		MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+	} else {
+		Color.Transparent
+	}
+	val badgeColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+
+	Row(
+		modifier = modifier
+			.heightIn(min = 56.dp)
+			.border(width = 1.dp, color = borderColor, shape = shape)
+			.background(color = backgroundColor, shape = shape)
+			.clickable(onClick = onClick)
+			.padding(horizontal = 10.dp, vertical = 8.dp),
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		Box(
+			modifier = Modifier
+				.background(
+					color = badgeColor.copy(alpha = if (selected) 0.18f else 0.10f),
+					shape = RoundedCornerShape(10.dp)
+				)
+				.padding(horizontal = 8.dp, vertical = 6.dp),
+			contentAlignment = Alignment.Center
+		) {
+			Text(
+				text = option.badge,
+				color = badgeColor,
+				fontWeight = FontWeight.SemiBold
+			)
+		}
+		Column(modifier = Modifier.padding(start = 8.dp)) {
+			Text(
+				text = option.title,
+				fontWeight = FontWeight.SemiBold,
+				color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+			)
+			Text(
+				text = option.subtitle,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
 		}
 	}
 }
