@@ -14,7 +14,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sa.aichatlib.ChatSdk
+import com.sa.aichatlib.displayName
 import com.sa.aichatlib.factory.ChatViewModelFactory
+import com.sa.aichatlib.selectedModel
 import com.sa.aichatlib.ui.components.ChatToolbar
 import com.sa.aichatlib.ui.components.ComposerBar
 import com.sa.aichatlib.ui.components.MessageList
@@ -32,6 +34,9 @@ fun ChatScreen(
 ) {
 	val uiState by viewModel.uiState.collectAsState()
 	val snackbarHostState = remember { SnackbarHostState() }
+	val config = ChatSdk.config()
+	val providerName = config.defaultProvider.displayName()
+	val modelName = config.selectedModel()
 
 	LaunchedEffect(uiState.errorMessage) {
 		val error = uiState.errorMessage ?: return@LaunchedEffect
@@ -40,7 +45,12 @@ fun ChatScreen(
 	}
 
 	Scaffold(
-		topBar = { ChatToolbar(title = "AI Chat", onClearHistory = viewModel::clearConversation) },
+		topBar = {
+			ChatToolbar(
+				title = "AI Chat · $providerName",
+				onClearHistory = viewModel::clearConversation
+			)
+		},
 		snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
 	) { innerPadding ->
 		Column(
@@ -51,7 +61,7 @@ fun ChatScreen(
 			MessageList(
 				messages = uiState.messages,
 				isTyping = uiState.isSending,
-				typingLabel = "Gemini is thinking...",
+				typingLabel = "$providerName is thinking with $modelName...",
 				modifier = Modifier
 					.weight(1f)
 					.fillMaxSize()

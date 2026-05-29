@@ -16,6 +16,25 @@ const val DEFAULT_GEMINI_MODEL = "models/gemini-3.5-flash"
 const val DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 const val DEFAULT_XAI_MODEL = "grok-4.3"
 
+fun ProviderId.displayName(): String =
+	when (this) {
+		ProviderId.OPEN_AI -> "OpenAI"
+		ProviderId.GEMINI -> "Gemini"
+		ProviderId.ANTHROPIC -> "Claude"
+		ProviderId.XAI -> "Grok"
+	}
+
+fun defaultModelFor(providerId: ProviderId): String =
+	when (providerId) {
+		ProviderId.OPEN_AI -> DEFAULT_OPENAI_MODEL
+		ProviderId.GEMINI -> DEFAULT_GEMINI_MODEL
+		ProviderId.ANTHROPIC -> DEFAULT_ANTHROPIC_MODEL
+		ProviderId.XAI -> DEFAULT_XAI_MODEL
+	}
+
+fun ChatSdkConfig.selectedModel(): String =
+	providerModels[defaultProvider] ?: defaultModelFor(defaultProvider)
+
 /**
  * Convenience helpers to bootstrap ChatSdk with the default provider engines.
  */

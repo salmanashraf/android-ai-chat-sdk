@@ -21,16 +21,13 @@ implementation("io.github.salmanashraf:aichatlib:1.0.2")
 The direct API-key setup below is useful for demos and local validation. For production mobile apps, prefer a backend proxy so provider keys are not embedded in the APK or app bundle. See [security.md](security.md).
 
 ```kotlin
-ChatSdk.initializeWithDefaults(
-    context = applicationContext,
-    config = ChatSdkConfig(
-        defaultProvider = ProviderId.OPEN_AI,
-        credentials = mapOf(
-            ProviderId.OPEN_AI to ProviderCredential.ApiKey("sk-...")
-        )
-    )
-)
+ChatSdk.configure(applicationContext) {
+    defaultProvider = ProviderId.OPEN_AI
+    openAI("sk-...")
+}
 ```
+
+For full control, build `ChatSdkConfig` yourself and call `ChatSdk.initializeWithDefaults(...)`.
 
 ## UI Integration (Compose)
 

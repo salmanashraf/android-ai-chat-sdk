@@ -30,15 +30,10 @@ android-ai-chat-sdk/
 ## Configure Providers
 
 ```kotlin
-ChatSdk.initializeWithDefaults(
-    context = applicationContext,
-    config = ChatSdkConfig(
-        defaultProvider = ProviderId.OPEN_AI,
-        credentials = mapOf(
-            ProviderId.OPEN_AI to ProviderCredential.ApiKey("sk-...")
-        )
-    )
-)
+ChatSdk.configure(applicationContext) {
+    defaultProvider = ProviderId.OPEN_AI
+    openAI("sk-...")
+}
 ```
 
 ## UI Usage

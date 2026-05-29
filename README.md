@@ -30,6 +30,13 @@ Multi-provider AI chat SDK for Android written in Kotlin + Jetpack Compose. The 
        }
    }
    ```
+   Or use the builder API:
+   ```kotlin
+   ChatSdk.configure(this) {
+       defaultProvider = ProviderId.OPEN_AI
+       openAI(BuildConfig.OPENAI_KEY)
+   }
+   ```
 3. Use Compose UI in any screen:
    ```kotlin
    ChatScreen()

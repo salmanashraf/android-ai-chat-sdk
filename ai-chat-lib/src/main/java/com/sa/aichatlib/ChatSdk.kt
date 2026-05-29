@@ -61,6 +61,14 @@ object ChatSdk {
         currentState.repository.updateConfig(newConfig)
         currentState.registry.clear()
     }
+
+    fun configure(
+        context: Context,
+        block: ChatSdkConfigBuilder.() -> Unit
+    ) {
+        val config = ChatSdkConfigBuilder().apply(block).build()
+        initializeWithDefaults(context, config)
+    }
 }
 
 data class ChatSdkConfig(
@@ -79,3 +87,79 @@ class ChatSdkState(
     val registry: ProviderRegistry,
     val client: ChatClient
 )
+
+class ChatSdkConfigBuilder {
+    var defaultProvider: ProviderId = ProviderId.OPEN_AI
+    var databaseName: String = "chat_db"
+    var defaultPersonaPrompt: String? = null
+    var usePersonaByDefault: Boolean = false
+    var persistHistoryForHeadless: Boolean = false
+
+    private val credentials = linkedMapOf<ProviderId, ProviderCredential>()
+    private val providerModels = linkedMapOf<ProviderId, String>()
+
+    fun openAI(
+        apiKey: String,
+        model: String = DEFAULT_OPENAI_MODEL
+    ) = provider(
+        providerId = ProviderId.OPEN_AI,
+        credential = ProviderCredential.ApiKey(apiKey),
+        model = model
+    )
+
+    fun gemini(
+        apiKey: String,
+        model: String = DEFAULT_GEMINI_MODEL
+    ) = provider(
+        providerId = ProviderId.GEMINI,
+        credential = ProviderCredential.ApiKey(apiKey),
+        model = model
+    )
+
+    fun geminiServiceJson(
+        json: String,
+        model: String = DEFAULT_GEMINI_MODEL
+    ) = provider(
+        providerId = ProviderId.GEMINI,
+        credential = ProviderCredential.GoogleServiceJson(json),
+        model = model
+    )
+
+    fun anthropic(
+        apiKey: String,
+        model: String = DEFAULT_ANTHROPIC_MODEL
+    ) = provider(
+        providerId = ProviderId.ANTHROPIC,
+        credential = ProviderCredential.ApiKey(apiKey),
+        model = model
+    )
+
+    fun xAI(
+        apiKey: String,
+        model: String = DEFAULT_XAI_MODEL
+    ) = provider(
+        providerId = ProviderId.XAI,
+        credential = ProviderCredential.ApiKey(apiKey),
+        model = model
+    )
+
+    fun provider(
+        providerId: ProviderId,
+        credential: ProviderCredential,
+        model: String = defaultModelFor(providerId)
+    ) {
+        credentials[providerId] = credential
+        providerModels[providerId] = model
+    }
+
+    fun build(): ChatSdkConfig =
+        ChatSdkConfig(
+            defaultProvider = defaultProvider,
+            databaseName = databaseName,
+            credentials = credentials.toMap(),
+            providerModels = providerModels.toMap(),
+            defaultPersonaPrompt = defaultPersonaPrompt,
+            usePersonaByDefault = usePersonaByDefault,
+            persistHistoryForHeadless = persistHistoryForHeadless
+        )
+}
