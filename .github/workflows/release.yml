@@ -5,10 +5,25 @@ on:
     tags:
       - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish. Leave empty to use gradle.properties, or the tag name for tag runs."
+        required: false
+        type: string
+      publish_to_sonatype:
+        description: "Publish to the configured Sonatype/OSSRH repository after building the Central Portal bundle."
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-publish:
+  publish:
+    name: Build and publish library
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,24 +34,96 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Gradle Cache
-        uses: gradle/actions/setup-gradle@v3
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Run Tests
-        run: ./gradlew clean test
+      - name: Resolve release version
+        id: release_version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="$(grep '^LIB_VERSION=' gradle.properties | cut -d= -f2)"
+          fi
 
-      - name: Assemble Library
-        run: ./gradlew :ai-chat-lib:assembleRelease
+          if [[ -z "${VERSION}" ]]; then
+            echo "Unable to resolve release version" >&2
+            exit 1
+          fi
 
-      - name: Publish to GitHub Packages
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "Publishing version ${VERSION}"
+
+      - name: Verify library and sample app
+        run: ./gradlew :ai-chat-lib:testDebugUnitTest :sampleapp:compileDebugKotlin -PLIB_VERSION=${{ steps.release_version.outputs.version }}
+
+      - name: Assemble release AAR
+        run: ./gradlew :ai-chat-lib:assembleRelease -PLIB_VERSION=${{ steps.release_version.outputs.version }}
+
+      - name: Import GPG signing key
+        if: github.ref_type == 'tag' || github.event.inputs.publish_to_sonatype == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GPR_USER: ${{ secrets.GPR_USER }}
-          GPR_KEY: ${{ secrets.GPR_KEY }}
-        run: ./gradlew :ai-chat-lib:publishGprPublicationToGitHubPackagesRepository
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        shell: bash
+        run: |
+          if [[ -z "${GPG_PRIVATE_KEY}" || -z "${GPG_PASSPHRASE}" ]]; then
+            echo "GPG_PRIVATE_KEY and GPG_PASSPHRASE secrets are required for signed publication." >&2
+            exit 1
+          fi
 
-      - name: Upload AAR
+          mkdir -p "${HOME}/.gnupg"
+          chmod 700 "${HOME}/.gnupg"
+          echo "pinentry-mode loopback" >> "${HOME}/.gnupg/gpg.conf"
+          echo "allow-loopback-pinentry" >> "${HOME}/.gnupg/gpg-agent.conf"
+          echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
+          gpgconf --kill gpg-agent
+
+          mkdir -p "${HOME}/.gradle"
+          {
+            echo "signing.gnupg.passphrase=${GPG_PASSPHRASE}"
+          } >> "${HOME}/.gradle/gradle.properties"
+
+      - name: Configure Sonatype credentials
+        if: github.ref_type == 'tag' || github.event.inputs.publish_to_sonatype == 'true'
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        shell: bash
+        run: |
+          if [[ -z "${OSSRH_USERNAME}" || -z "${OSSRH_PASSWORD}" ]]; then
+            echo "OSSRH_USERNAME and OSSRH_PASSWORD secrets are required for Sonatype publication." >&2
+            exit 1
+          fi
+
+          mkdir -p "${HOME}/.gradle"
+          {
+            echo "ossrhUsername=${OSSRH_USERNAME}"
+            echo "ossrhPassword=${OSSRH_PASSWORD}"
+          } >> "${HOME}/.gradle/gradle.properties"
+
+      - name: Build signed Central Portal bundle
+        if: github.ref_type == 'tag' || github.event.inputs.publish_to_sonatype == 'true'
+        run: ./gradlew :ai-chat-lib:bundleCentralComponent -PLIB_VERSION=${{ steps.release_version.outputs.version }}
+
+      - name: Upload Central Portal bundle
+        if: github.ref_type == 'tag' || github.event.inputs.publish_to_sonatype == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ai-chat-lib-aar
+          name: aichatlib-${{ steps.release_version.outputs.version }}-central-portal-bundle
+          path: ai-chat-lib/build/central-component/aichatlib-${{ steps.release_version.outputs.version }}-component.zip
+          if-no-files-found: error
+
+      - name: Publish to Sonatype/OSSRH
+        if: github.ref_type == 'tag' || github.event.inputs.publish_to_sonatype == 'true'
+        run: ./gradlew :ai-chat-lib:publishReleasePublicationToOSSRHRepository -PLIB_VERSION=${{ steps.release_version.outputs.version }}
+
+      - name: Upload release AAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: aichatlib-${{ steps.release_version.outputs.version }}-aar
           path: ai-chat-lib/build/outputs/aar/*.aar
+          if-no-files-found: error

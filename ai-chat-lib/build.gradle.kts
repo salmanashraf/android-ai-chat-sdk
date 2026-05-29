@@ -127,7 +127,7 @@ afterEvaluate {
 				pom {
 					name.set("AI Chat Android SDK")
 					description.set("A multi-provider AI chat SDK.")
-					url.set("https://github.com/salmanashraf/ai-chat-android")
+					url.set("https://github.com/salmanashraf/android-ai-chat-sdk")
 
 					licenses {
 						license {
@@ -145,9 +145,9 @@ afterEvaluate {
 					}
 
 					scm {
-						url.set("https://github.com/salmanashraf/ai-chat-android")
-						connection.set("scm:git:git://github.com/salmanashraf/ai-chat-android.git")
-						developerConnection.set("scm:git:ssh://git@github.com/salmanashraf/ai-chat-android.git")
+						url.set("https://github.com/salmanashraf/android-ai-chat-sdk")
+						connection.set("scm:git:git://github.com/salmanashraf/android-ai-chat-sdk.git")
+						developerConnection.set("scm:git:ssh://git@github.com/salmanashraf/android-ai-chat-sdk.git")
 					}
 				}
 			}

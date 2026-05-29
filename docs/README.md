@@ -23,6 +23,8 @@ Start here: [getting-started.md](getting-started.md)
 
 Security guidance: [security.md](security.md)
 
+Publishing workflow: [publishing.md](publishing.md)
+
 ## Quick Start
 ```kotlin
 ChatSdk.initializeWithDefaults(
