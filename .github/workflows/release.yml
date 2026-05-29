@@ -81,10 +81,10 @@ jobs:
           echo "allow-loopback-pinentry" >> "${HOME}/.gnupg/gpg-agent.conf"
 
           KEY_FILE="${RUNNER_TEMP}/signing-key.asc"
-          if [[ -n "${GPG_PRIVATE_KEY_BASE64}" ]]; then
-            printf '%s' "${GPG_PRIVATE_KEY_BASE64}" | tr -d '[:space:]' | base64 --decode > "${KEY_FILE}"
-          else
+          if [[ -n "${GPG_PRIVATE_KEY}" ]]; then
             printf '%s' "${GPG_PRIVATE_KEY}" > "${KEY_FILE}"
+          else
+            printf '%s' "${GPG_PRIVATE_KEY_BASE64}" | tr -d '[:space:]' | base64 --decode > "${KEY_FILE}"
           fi
 
           if ! grep -q "BEGIN PGP PRIVATE KEY BLOCK" "${KEY_FILE}"; then
