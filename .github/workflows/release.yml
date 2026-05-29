@@ -61,11 +61,17 @@ jobs:
       - name: Import GPG signing key
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PRIVATE_KEY_BASE64: ${{ secrets.GPG_PRIVATE_KEY_BASE64 }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         shell: bash
         run: |
-          if [[ -z "${GPG_PRIVATE_KEY}" || -z "${GPG_PASSPHRASE}" ]]; then
-            echo "GPG_PRIVATE_KEY and GPG_PASSPHRASE secrets are required for signed publication." >&2
+          if [[ -z "${GPG_PRIVATE_KEY}" && -z "${GPG_PRIVATE_KEY_BASE64}" ]]; then
+            echo "GPG_PRIVATE_KEY or GPG_PRIVATE_KEY_BASE64 secret is required for signed publication." >&2
+            exit 1
+          fi
+
+          if [[ -z "${GPG_PASSPHRASE}" ]]; then
+            echo "GPG_PASSPHRASE secret is required for signed publication." >&2
             exit 1
           fi
 
@@ -73,7 +79,20 @@ jobs:
           chmod 700 "${HOME}/.gnupg"
           echo "pinentry-mode loopback" >> "${HOME}/.gnupg/gpg.conf"
           echo "allow-loopback-pinentry" >> "${HOME}/.gnupg/gpg-agent.conf"
-          echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
+
+          KEY_FILE="${RUNNER_TEMP}/signing-key.asc"
+          if [[ -n "${GPG_PRIVATE_KEY_BASE64}" ]]; then
+            printf '%s' "${GPG_PRIVATE_KEY_BASE64}" | base64 --decode > "${KEY_FILE}"
+          else
+            printf '%s' "${GPG_PRIVATE_KEY}" > "${KEY_FILE}"
+          fi
+
+          if ! grep -q "BEGIN PGP PRIVATE KEY BLOCK" "${KEY_FILE}"; then
+            echo "The configured GPG private key secret is not an ASCII-armored private key." >&2
+            exit 1
+          fi
+
+          gpg --batch --import "${KEY_FILE}"
           gpgconf --kill gpg-agent
 
           mkdir -p "${HOME}/.gradle"

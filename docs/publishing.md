@@ -7,9 +7,18 @@ The repository includes a GitHub Actions release workflow at `.github/workflows/
 Configure these repository secrets before publishing to Maven Central through the Central Portal Publisher API:
 
 - `GPG_PRIVATE_KEY`: ASCII-armored private signing key.
+- `GPG_PRIVATE_KEY_BASE64`: optional safer alternative to `GPG_PRIVATE_KEY`; base64 encoded ASCII-armored private signing key.
 - `GPG_PASSPHRASE`: passphrase for the signing key.
 - `CENTRAL_PORTAL_USERNAME`: Central Portal user token username.
 - `CENTRAL_PORTAL_PASSWORD`: Central Portal user token password.
+
+Use either `GPG_PRIVATE_KEY` or `GPG_PRIVATE_KEY_BASE64`. The base64 form avoids copy/paste issues with multiline GitHub secrets:
+
+```bash
+gpg --armor --export-secret-keys 15111AACFE960231 | base64 | tr -d '\n'
+```
+
+Copy the single-line output into `GPG_PRIVATE_KEY_BASE64`.
 
 ## Manual Release
 
