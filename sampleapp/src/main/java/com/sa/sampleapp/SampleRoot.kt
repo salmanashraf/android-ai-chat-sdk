@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -50,6 +51,12 @@ fun SampleRoot() {
 	var geminiKey by rememberSaveable { mutableStateOf("") }
 	var anthropicKey by rememberSaveable { mutableStateOf("") }
 	var grokKey by rememberSaveable { mutableStateOf("") }
+	var headlessPrompt by rememberSaveable { mutableStateOf("") }
+	var headlessPersona by rememberSaveable { mutableStateOf("") }
+	var headlessResponse by rememberSaveable { mutableStateOf("") }
+	var headlessLoading by remember { mutableStateOf(false) }
+	var uiPersona by rememberSaveable { mutableStateOf("") }
+	var uiUsePersona by rememberSaveable { mutableStateOf(false) }
 	val context = LocalContext.current
 
 	Scaffold(
@@ -100,6 +107,33 @@ fun SampleRoot() {
 						}
 					}
 				)
+				HeadlessDemoCard(
+					prompt = headlessPrompt,
+					onPromptChange = { headlessPrompt = it },
+					persona = headlessPersona,
+					onPersonaChange = { headlessPersona = it },
+					response = headlessResponse,
+					loading = headlessLoading,
+					onSend = {
+						if (headlessPrompt.isBlank()) return@HeadlessDemoCard
+						headlessLoading = true
+						scope.launch {
+							val reply = ChatSdk.client().respond(
+								prompt = headlessPrompt.trim(),
+								personaPrompt = headlessPersona.takeIf { it.isNotBlank() },
+								usePersona = headlessPersona.isNotBlank()
+							)
+							headlessResponse = reply
+							headlessLoading = false
+						}
+					}
+				)
+				UiPersonaCard(
+					persona = uiPersona,
+					onPersonaChange = { uiPersona = it },
+					usePersona = uiUsePersona,
+					onUsePersonaChange = { uiUsePersona = it }
+				)
 			}
 
 			Divider(modifier = Modifier.padding(vertical = 8.dp))
@@ -110,7 +144,10 @@ fun SampleRoot() {
 					.weight(1f)
 					.padding(horizontal = 12.dp, vertical = 4.dp)
 			) {
-				ChatScreen()
+				ChatScreen(
+					personaPrompt = uiPersona.takeIf { it.isNotBlank() },
+					usePersona = uiUsePersona
+				)
 			}
 		}
 	}
@@ -169,15 +206,15 @@ private fun ProviderConfigCard(
 			}
 
 			Spacer(modifier = Modifier.height(12.dp))
-	KeyFieldForProvider(
-		provider = selectedProvider,
-		openAiKey = openAiKey,
-		onOpenAiChange = onOpenAiChange,
-		geminiKey = geminiKey,
-		onGeminiChange = onGeminiChange,
-		anthropicKey = anthropicKey,
-		onAnthropicChange = onAnthropicChange,
-		grokKey = grokKey,
+			KeyFieldForProvider(
+				provider = selectedProvider,
+				openAiKey = openAiKey,
+				onOpenAiChange = onOpenAiChange,
+				geminiKey = geminiKey,
+				onGeminiChange = onGeminiChange,
+				anthropicKey = anthropicKey,
+				onAnthropicChange = onAnthropicChange,
+				grokKey = grokKey,
 				onGrokChange = onGrokChange
 			)
 
@@ -187,6 +224,94 @@ private fun ProviderConfigCard(
 				modifier = Modifier.align(Alignment.End)
 			) {
 				Text("Apply")
+			}
+		}
+	}
+}
+
+@Composable
+private fun UiPersonaCard(
+	persona: String,
+	onPersonaChange: (String) -> Unit,
+	usePersona: Boolean,
+	onUsePersonaChange: (Boolean) -> Unit
+) {
+	Card(
+		modifier = Modifier
+			.padding(horizontal = 12.dp)
+			.fillMaxWidth()
+	) {
+		Column(modifier = Modifier.padding(16.dp)) {
+			Text(text = "Chat UI Persona")
+			Spacer(modifier = Modifier.height(8.dp))
+			TextField(
+				value = persona,
+				onValueChange = onPersonaChange,
+				modifier = Modifier.fillMaxWidth(),
+				label = { Text("Persona (optional)") }
+			)
+			Spacer(modifier = Modifier.height(12.dp))
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				Text(text = "Use persona")
+				Spacer(modifier = Modifier.weight(1f))
+				Switch(
+					checked = usePersona,
+					onCheckedChange = onUsePersonaChange
+				)
+			}
+		}
+	}
+}
+
+@Composable
+private fun HeadlessDemoCard(
+	prompt: String,
+	onPromptChange: (String) -> Unit,
+	persona: String,
+	onPersonaChange: (String) -> Unit,
+	response: String,
+	loading: Boolean,
+	onSend: () -> Unit
+) {
+	Card(
+		modifier = Modifier
+			.padding(horizontal = 12.dp)
+			.fillMaxWidth()
+	) {
+		Column(modifier = Modifier.padding(16.dp)) {
+			Text(text = "Headless SDK (No UI)")
+			Spacer(modifier = Modifier.height(8.dp))
+			TextField(
+				value = prompt,
+				onValueChange = onPromptChange,
+				modifier = Modifier.fillMaxWidth(),
+				label = { Text("Prompt") }
+			)
+			Spacer(modifier = Modifier.height(8.dp))
+			TextField(
+				value = persona,
+				onValueChange = onPersonaChange,
+				modifier = Modifier.fillMaxWidth(),
+				label = { Text("Persona (optional)") }
+			)
+			Spacer(modifier = Modifier.height(12.dp))
+			Button(
+				onClick = onSend,
+				enabled = !loading,
+				modifier = Modifier.align(Alignment.End)
+			) {
+				Text(if (loading) "Sending..." else "Send")
+			}
+			if (response.isNotBlank()) {
+				Spacer(modifier = Modifier.height(12.dp))
+				Divider()
+				Spacer(modifier = Modifier.height(8.dp))
+				Text(text = "Response")
+				Spacer(modifier = Modifier.height(4.dp))
+				Text(text = response)
 			}
 		}
 	}

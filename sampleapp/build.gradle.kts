@@ -47,7 +47,7 @@ dependencies {
 	implementation(libs.androidx.core.ktx)
 	implementation(libs.androidx.appcompat)
 	implementation(libs.material)
-	implementation(libs.aichatlib)
+	implementation(project(":ai-chat-lib"))
 	implementation(libs.compose.ui)
 	implementation(libs.compose.material3)
 	implementation(libs.lifecycle.viewmodel.compose)

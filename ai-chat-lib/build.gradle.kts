@@ -4,6 +4,10 @@ import org.gradle.jvm.tasks.Jar
 plugins {
 	alias(libs.plugins.android.library)
 	alias(libs.plugins.kotlin.android)
+	alias(libs.plugins.compose.compiler)
+	alias(libs.plugins.kotlin.serialization)
+	alias(libs.plugins.kotlin.parcelize)
+	id("kotlin-kapt")
 	id("maven-publish")
 	id("signing")
 }
@@ -21,6 +25,14 @@ android {
 		minSdk = 24
 	}
 
+	buildFeatures {
+		compose = true
+	}
+
+	composeOptions {
+		kotlinCompilerExtensionVersion = libs.versions.composeUi.get()
+	}
+
 	buildTypes {
 		release {
 			isMinifyEnabled = false
@@ -31,11 +43,11 @@ android {
 		}
 	}
 	compileOptions {
-		sourceCompatibility = JavaVersion.VERSION_21
-		targetCompatibility = JavaVersion.VERSION_21
+		sourceCompatibility = JavaVersion.VERSION_17
+		targetCompatibility = JavaVersion.VERSION_17
 	}
 	kotlinOptions {
-		jvmTarget = "21"
+		jvmTarget = "17"
 	}
 	publishing {
 		singleVariant("release") {
@@ -45,17 +57,33 @@ android {
 }
 
 dependencies {
-	api(project(":modules:core"))
-	api(project(":modules:ui"))
-	implementation(project(":modules:providers:openai"))
-	implementation(project(":modules:providers:gemini"))
-	implementation(project(":modules:providers:anthropic"))
-	implementation(project(":modules:providers:xai"))
-	implementation(libs.okhttp)
+	implementation(libs.androidx.core.ktx)
+	implementation(libs.androidx.appcompat)
+	implementation(libs.material)
+	implementation(libs.coroutines.android)
 	implementation(libs.kotlinx.serialization.json)
+	implementation(libs.okhttp)
+	implementation(libs.retrofit)
+	implementation(libs.gson.converter)
+	implementation(libs.gson)
+	implementation(libs.json)
+	implementation(libs.room.runtime)
+	implementation(libs.room.ktx)
+	kapt(libs.room.compiler)
+	implementation(libs.lifecycle.viewmodel.ktx)
+	implementation(libs.lifecycle.viewmodel.compose)
+	implementation(libs.compose.ui)
+	implementation(libs.compose.material3)
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.junit)
 	androidTestImplementation(libs.androidx.espresso.core)
+}
+
+kapt {
+	arguments {
+		arg("room.schemaLocation", "$projectDir/schemas")
+		arg("room.incremental", "true")
+	}
 }
 
 /* ---------------------------------------------------------

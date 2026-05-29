@@ -11,17 +11,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/ai-chat-lib" />
-            <option value="$PROJECT_DIR$/modules" />
-            <option value="$PROJECT_DIR$/modules/core" />
-            <option value="$PROJECT_DIR$/modules/crypto" />
-            <option value="$PROJECT_DIR$/modules/embeddings" />
-            <option value="$PROJECT_DIR$/modules/providers" />
-            <option value="$PROJECT_DIR$/modules/providers/anthropic" />
-            <option value="$PROJECT_DIR$/modules/providers/gemini" />
-            <option value="$PROJECT_DIR$/modules/providers/openai" />
-            <option value="$PROJECT_DIR$/modules/providers/xai" />
-            <option value="$PROJECT_DIR$/modules/tools" />
-            <option value="$PROJECT_DIR$/modules/ui" />
             <option value="$PROJECT_DIR$/sampleapp" />
           </set>
         </option>
