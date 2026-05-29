@@ -53,6 +53,7 @@ import com.sa.aichatlib.applyConfig
 import com.sa.aichatlib.provider.ProviderCredential
 import com.sa.aichatlib.provider.ProviderId
 import com.sa.aichatlib.ui.ChatScreen
+import com.sa.aichatlib.validateDefaultProvider
 import kotlinx.coroutines.launch
 
 @Composable
@@ -113,24 +114,24 @@ fun SampleRoot() {
 						if (anthropicKey.isNotBlank()) put(ProviderId.ANTHROPIC, ProviderCredential.ApiKey(anthropicKey.trim()))
 						if (grokKey.isNotBlank()) put(ProviderId.XAI, ProviderCredential.ApiKey(grokKey.trim()))
 					}
-					if (credentials[selectedProvider] == null) {
+					val config = ChatSdkConfig(
+						defaultProvider = selectedProvider,
+						credentials = credentials,
+						providerModels = mapOf(
+							ProviderId.OPEN_AI to openAiModel,
+							ProviderId.GEMINI to geminiModel,
+							ProviderId.ANTHROPIC to anthropicModel,
+							ProviderId.XAI to grokModel
+						)
+					)
+					val validation = config.validateDefaultProvider()
+					if (!validation.isValid) {
 						scope.launch {
-							snackbarHostState.showSnackbar("Configure a credential for $selectedProvider before applying")
+							snackbarHostState.showSnackbar(validation.errors.joinToString(" "))
 						}
 						return@ProviderConfigCard
 					}
-					ChatSdk.applyConfig(
-						ChatSdkConfig(
-							defaultProvider = selectedProvider,
-							credentials = credentials,
-							providerModels = mapOf(
-								ProviderId.OPEN_AI to openAiModel,
-								ProviderId.GEMINI to geminiModel,
-								ProviderId.ANTHROPIC to anthropicModel,
-								ProviderId.XAI to grokModel
-							)
-						)
-					)
+					ChatSdk.applyConfig(config)
 					scope.launch {
 						snackbarHostState.showSnackbar("Applied config for $selectedProvider")
 					}

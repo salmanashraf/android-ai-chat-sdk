@@ -9,7 +9,6 @@ import com.sa.aichatlib.provider.ProviderCredential
 import com.sa.aichatlib.provider.ProviderId
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
-import org.json.JSONObject
 
 const val DEFAULT_OPENAI_MODEL = "gpt-4.1"
 const val DEFAULT_GEMINI_MODEL = "models/gemini-3.5-flash"
@@ -74,7 +73,7 @@ fun ChatSdk.installDefaultEngines(
 
 	val geminiKey = when (val credential = cfg.credentials[ProviderId.GEMINI]) {
 		is ProviderCredential.ApiKey -> credential.key
-		is ProviderCredential.GoogleServiceJson -> extractGeminiKeyFromJson(credential.json)
+		is ProviderCredential.GoogleServiceJson -> extractGeminiApiKey(credential.json)
 		else -> null
 	}
 	geminiKey?.let {
@@ -110,11 +109,3 @@ fun ChatSdk.installDefaultEngines(
 		)
 	}
 }
-
-private fun extractGeminiKeyFromJson(jsonString: String): String? =
-	runCatching {
-		val jsonObject = JSONObject(jsonString)
-		jsonObject.optString("api_key")
-			.takeIf { it.isNotBlank() }
-			?: jsonObject.optString("apiKey").takeIf { it.isNotBlank() }
-	}.getOrNull()

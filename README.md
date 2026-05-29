@@ -13,7 +13,7 @@ Multi-provider AI chat SDK for Android written in Kotlin + Jetpack Compose. The 
 ## Quickstart
 1. Add the Maven Central dependency:
    ```gradle
-   implementation("io.github.salmanashraf:aichatlib:1.0.3")
+   implementation("io.github.salmanashraf:aichatlib:1.0.4")
    ```
 2. Initialize the SDK from your `Application` class:
    ```kotlin
@@ -35,6 +35,13 @@ Multi-provider AI chat SDK for Android written in Kotlin + Jetpack Compose. The 
    ChatSdk.configure(this) {
        defaultProvider = ProviderId.OPEN_AI
        openAI(BuildConfig.OPENAI_KEY)
+   }
+   ```
+   You can validate credentials before opening chat:
+   ```kotlin
+   val validation = ChatSdk.config().validateDefaultProvider()
+   if (!validation.isValid) {
+       // Show validation.errors to the user.
    }
    ```
 3. Use Compose UI in any screen:

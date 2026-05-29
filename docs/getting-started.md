@@ -13,7 +13,7 @@ This guide walks you through integrating the AI Chat library into your Android a
 Add the Maven Central dependency:
 
 ```gradle
-implementation("io.github.salmanashraf:aichatlib:1.0.3")
+implementation("io.github.salmanashraf:aichatlib:1.0.4")
 ```
 
 ## Configure the SDK
@@ -28,6 +28,15 @@ ChatSdk.configure(applicationContext) {
 ```
 
 For full control, build `ChatSdkConfig` yourself and call `ChatSdk.initializeWithDefaults(...)`.
+
+Validate the active provider before showing chat if credentials come from user input:
+
+```kotlin
+val validation = ChatSdk.config().validateDefaultProvider()
+if (!validation.isValid) {
+    showError(validation.errors.joinToString("\n"))
+}
+```
 
 ## UI Integration (Compose)
 

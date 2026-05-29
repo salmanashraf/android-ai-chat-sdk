@@ -15,7 +15,7 @@ Configure these repository secrets before publishing to Maven Central through th
 Use either `GPG_PRIVATE_KEY` or `GPG_PRIVATE_KEY_BASE64`. The base64 form avoids copy/paste issues with multiline GitHub secrets:
 
 ```bash
-gpg --armor --export-secret-keys 15111AACFE960231 | base64 | tr -d '\n'
+gpg --armor --export-secret-keys KEY_ID | base64 | tr -d '\n'
 ```
 
 Copy the single-line output into `GPG_PRIVATE_KEY_BASE64`.
@@ -32,11 +32,11 @@ You can also provide a `version` input to override `LIB_VERSION` for that workfl
 
 ## Tag Release
 
-Pushing a tag like `v1.0.3` runs the workflow automatically:
+Pushing a tag like `v1.0.4` runs the workflow automatically:
 
 ```bash
-git tag v1.0.3
-git push origin v1.0.3
+git tag v1.0.4
+git push origin v1.0.4
 ```
 
 For tag runs, the workflow uses the tag name as the publication version.

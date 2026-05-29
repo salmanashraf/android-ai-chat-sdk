@@ -13,7 +13,7 @@ Supports OpenAI (GPT), Claude, Gemini, Grok, and custom LLMs.
 ## Installation
 
 ```gradle
-implementation("io.github.salmanashraf:aichatlib:1.0.3")
+implementation("io.github.salmanashraf:aichatlib:1.0.4")
 ```
 
 ## Documentation
