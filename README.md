@@ -13,7 +13,7 @@ Multi-provider AI chat SDK for Android written in Kotlin + Jetpack Compose. The 
 ## Quickstart
 1. Add the Maven Central dependency:
    ```gradle
-   implementation("io.github.salmanashraf:aichatlib:1.0.2")
+   implementation("io.github.salmanashraf:aichatlib:1.0.3")
    ```
 2. Initialize the SDK from your `Application` class:
    ```kotlin

@@ -15,7 +15,7 @@ This Android library adds a Compose chat UI, Room-backed message history, and a 
 ## Installation
 
 ```gradle
-implementation("io.github.salmanashraf:aichatlib:1.0.2")
+implementation("io.github.salmanashraf:aichatlib:1.0.3")
 ```
 
 ## Project Structure

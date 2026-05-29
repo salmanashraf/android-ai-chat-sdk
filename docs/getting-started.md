@@ -13,7 +13,7 @@ This guide walks you through integrating the AI Chat library into your Android a
 Add the Maven Central dependency:
 
 ```gradle
-implementation("io.github.salmanashraf:aichatlib:1.0.2")
+implementation("io.github.salmanashraf:aichatlib:1.0.3")
 ```
 
 ## Configure the SDK
