@@ -4,6 +4,10 @@ Multi-provider AI chat SDK for Android apps. Add a ready-made Jetpack Compose ch
 
 The SDK currently supports OpenAI, Gemini, Claude/Anthropic, and Grok/xAI through one configuration surface.
 
+## Architecture
+
+![AI Chat SDK high-level architecture](docs/images/Screenshot%202026-05-29%20at%205.25.11%E2%80%AFPM.png)
+
 ## What You Get
 
 - Ready-to-use Compose chat screen with message bubbles, loading state, and typing indicator.
