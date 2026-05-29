@@ -259,4 +259,4 @@ Run it from Android Studio with the `sampleapp` configuration.
 
 ## License
 
-MIT
+[MIT](https://github.com/salmanashraf/android-ai-chat-sdk/blob/master/LICENSE)
