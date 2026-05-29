@@ -18,7 +18,8 @@ class AnthropicEngine(
 	private val apiKeyProvider: () -> String?,
 	private val model: String = "claude-3-haiku-20240307",
 	private val httpClient: OkHttpClient = OkHttpClient(),
-	private val json: Json = Json { ignoreUnknownKeys = true }
+	private val json: Json = Json { ignoreUnknownKeys = true },
+	private val endpointUrl: String = "https://api.anthropic.com/v1/messages"
 ) : LLMEngine {
 
 	override val providerId: ProviderId = ProviderId.ANTHROPIC
@@ -27,15 +28,20 @@ class AnthropicEngine(
 		val apiKey = apiKeyProvider() ?: return ChatResult.Error(IllegalStateException("Missing Anthropic API key"))
 		val payload = AnthropicRequest(
 			model = request.model ?: model,
-			messages = request.messages.map { it.toAnthropic() },
-			system = request.messages.firstOrNull { it.role == ChatRole.SYSTEM }?.content
+			messages = request.messages
+				.filterNot { it.role == ChatRole.SYSTEM }
+				.map { it.toAnthropic() },
+			system = request.messages
+				.filter { it.role == ChatRole.SYSTEM }
+				.joinToString(separator = "\n\n") { it.content.trim() }
+				.takeIf { it.isNotBlank() }
 		)
 		val body = json.encodeToString(AnthropicRequest.serializer(), payload)
 			.toRequestBody("application/json".toMediaType())
 
 		return try {
 			val httpRequest = Request.Builder()
-				.url("https://api.anthropic.com/v1/messages")
+				.url(endpointUrl)
 				.header("x-api-key", apiKey)
 				.header("anthropic-version", "2023-06-01")
 				.post(body)
@@ -59,7 +65,7 @@ class AnthropicEngine(
 		val roleString = when (role) {
 			ChatRole.USER -> "user"
 			ChatRole.ASSISTANT -> "assistant"
-			ChatRole.SYSTEM -> "user"
+			ChatRole.SYSTEM -> error("System messages must be sent through AnthropicRequest.system")
 		}
 		return AnthropicMessage(role = roleString, content = content)
 	}

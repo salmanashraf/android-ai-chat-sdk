@@ -75,6 +75,7 @@ dependencies {
 	implementation(libs.compose.ui)
 	implementation(libs.compose.material3)
 	testImplementation(libs.junit)
+	testImplementation(libs.mockwebserver)
 	androidTestImplementation(libs.androidx.junit)
 	androidTestImplementation(libs.androidx.espresso.core)
 }
