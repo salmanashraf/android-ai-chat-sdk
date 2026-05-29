@@ -6,6 +6,8 @@ The SDK currently supports OpenAI, Gemini, Claude/Anthropic, and Grok/xAI throug
 
 ## Architecture
 
+The host Android app integrates the SDK either through the ready-made Compose chat UI or the headless API. Both flows go through the SDK core, which handles configuration, message flow, local history, and provider routing. The provider registry allows the SDK to connect with built-in AI providers or a custom backend.
+
 ![AI Chat SDK high-level architecture](docs/images/Screenshot%202026-05-29%20at%205.25.11%E2%80%AFPM.png)
 
 ## What You Get
