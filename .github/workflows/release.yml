@@ -81,17 +81,7 @@ jobs:
           echo "allow-loopback-pinentry" >> "${HOME}/.gnupg/gpg-agent.conf"
 
           KEY_FILE="${RUNNER_TEMP}/signing-key.asc"
-          python3 -c "
-import base64, os, sys
-k = os.environ.get('GPG_PRIVATE_KEY', '') or os.environ.get('GPG_PRIVATE_KEY_BASE64', '')
-k = ''.join(k.split())
-if k.startswith('-----'):
-    sys.stdout.buffer.write(k.encode())
-else:
-    k = k.replace('-', '+').replace('_', '/')
-    k += '=' * (-len(k) % 4)
-    sys.stdout.buffer.write(base64.b64decode(k))
-" > "${KEY_FILE}"
+          python3 -c "import base64,os,sys; k=''.join((os.environ.get('GPG_PRIVATE_KEY','') or os.environ.get('GPG_PRIVATE_KEY_BASE64','')).split()); sys.stdout.buffer.write(k.encode() if k.startswith('-----') else base64.b64decode(k.replace('-','+').replace('_','/')+'='*(-len(k)%4)))" > "${KEY_FILE}"
 
           if ! grep -q "BEGIN PGP PRIVATE KEY BLOCK" "${KEY_FILE}"; then
             echo "The configured GPG private key secret is not an ASCII-armored private key." >&2
