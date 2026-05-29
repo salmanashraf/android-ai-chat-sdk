@@ -52,6 +52,10 @@ Multi-provider AI chat SDK for Android written in Kotlin + Jetpack Compose. The 
 - Gemini: API key or `google.json` file (place in `sampleapp/src/main/assets/google.json` so `ChatSdk` can read it).
 - Call `ChatSdk.applyConfig(ChatSdkConfig(...))` whenever you need to switch providers at runtime; the SDK rebuilds its provider registry and repository automatically.
 
+## Security
+Do not ship unrestricted provider API keys in a production mobile app. The direct `ProviderCredential.ApiKey(...)` examples are suitable for demos, internal tools, and prototypes where the risk is understood. Production apps should route requests through a backend that owns provider credentials, applies auth and rate limits, and returns only the model response to the app.
+
+See [docs/security.md](docs/security.md) for the recommended production pattern.
 
 ## Contributing
 1. Read `docs/MULTI_PROVIDER_PLAN.md`.

@@ -18,6 +18,8 @@ implementation("io.github.salmanashraf:aichatlib:1.0.2")
 
 ## Configure the SDK
 
+The direct API-key setup below is useful for demos and local validation. For production mobile apps, prefer a backend proxy so provider keys are not embedded in the APK or app bundle. See [security.md](security.md).
+
 ```kotlin
 ChatSdk.initializeWithDefaults(
     context = applicationContext,

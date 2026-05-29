@@ -21,6 +21,8 @@ Full docs available in `/docs`.
 
 Start here: [getting-started.md](getting-started.md)
 
+Security guidance: [security.md](security.md)
+
 ## Quick Start
 ```kotlin
 ChatSdk.initializeWithDefaults(
