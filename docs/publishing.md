@@ -4,12 +4,12 @@ The repository includes a GitHub Actions release workflow at `.github/workflows/
 
 ## Required Secrets
 
-Configure these repository secrets before publishing to Sonatype or Maven Central:
+Configure these repository secrets before publishing to Maven Central through the Central Portal Publisher API:
 
 - `GPG_PRIVATE_KEY`: ASCII-armored private signing key.
 - `GPG_PASSPHRASE`: passphrase for the signing key.
-- `OSSRH_USERNAME`: Sonatype/OSSRH token username.
-- `OSSRH_PASSWORD`: Sonatype/OSSRH token password.
+- `CENTRAL_PORTAL_USERNAME`: Central Portal user token username.
+- `CENTRAL_PORTAL_PASSWORD`: Central Portal user token password.
 
 ## Manual Release
 
@@ -18,7 +18,6 @@ Configure these repository secrets before publishing to Sonatype or Maven Centra
 3. Push the version commit.
 4. Open GitHub Actions.
 5. Run the `Release` workflow manually.
-6. Set `publish_to_sonatype` to `true` when you want the workflow to publish.
 
 You can also provide a `version` input to override `LIB_VERSION` for that workflow run.
 
@@ -41,4 +40,5 @@ For tag runs, the workflow uses the tag name as the publication version.
 - Imports the GPG signing key.
 - Builds the signed Central Portal component zip.
 - Uploads the AAR and Central Portal zip as workflow artifacts.
-- Publishes to the configured Sonatype/OSSRH repository.
+- Uploads the signed bundle to the Central Portal Publisher API with `publishingType=AUTOMATIC`.
+- Polls the Central Portal deployment until it reaches `PUBLISHED` or fails.
